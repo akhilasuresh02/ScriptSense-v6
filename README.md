@@ -1,4 +1,4 @@
-# ScriptSense v3 - Team Setup Guide
+# ScriptSense v5 - Team Setup Guide
 
 Welcome to the team! This guide will help you get ScriptSense running on your own computer.
 

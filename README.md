@@ -13,8 +13,8 @@ Welcome to the team! This guide will help you get ScriptSense running on your ow
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/2548537/script-sense-v3.git
-cd script-sense-v2
+git clone https://github.com/akhilasuresh02/scriptsense-v5.git
+cd scriptsense-v5
 ```
 
 ### 2. Backend Setup (Flask)

@@ -170,15 +170,20 @@ def save_marks():
         question_number = data.get('questionNumber')
         marks_awarded = data.get('marksAwarded')
         max_marks = data.get('maxMarks')
+        evaluator_role = data.get('evaluatorRole', 'teacher') # 'teacher' or 'external'
         
         # Validate inputs
         if not all([answer_sheet_id, question_number is not None, marks_awarded is not None, max_marks is not None]):
             return jsonify({'error': 'Missing required fields'}), 400
+            
+        if float(marks_awarded) > float(max_marks):
+            return jsonify({'error': 'Awarded marks cannot be greater than max marks'}), 400
         
         # Check if mark already exists
         existing_mark = Mark.query.filter_by(
             answer_sheet_id=answer_sheet_id,
-            question_number=question_number
+            question_number=question_number,
+            evaluator_role=evaluator_role
         ).first()
         
         if existing_mark:
@@ -193,7 +198,8 @@ def save_marks():
                 question_paper_id=question_paper_id,
                 question_number=question_number,
                 marks_awarded=float(marks_awarded),
-                max_marks=float(max_marks)
+                max_marks=float(max_marks),
+                evaluator_role=evaluator_role
             )
             db.session.add(mark)
             
@@ -219,7 +225,11 @@ def save_marks():
 def get_marks(answer_sheet_id):
     """Get all marks for an answer sheet"""
     try:
-        marks = Mark.query.filter_by(answer_sheet_id=answer_sheet_id).order_by(Mark.question_number).all()
+        evaluator_role = request.args.get('role', 'teacher')
+        marks = Mark.query.filter_by(
+            answer_sheet_id=answer_sheet_id,
+            evaluator_role=evaluator_role
+        ).order_by(Mark.question_number).all()
         
         return jsonify({
             'marks': [mark.to_dict() for mark in marks]
@@ -232,7 +242,11 @@ def get_marks(answer_sheet_id):
 def get_total_marks(answer_sheet_id):
     """Calculate total marks for an answer sheet"""
     try:
-        marks = Mark.query.filter_by(answer_sheet_id=answer_sheet_id).all()
+        evaluator_role = request.args.get('role', 'teacher')
+        marks = Mark.query.filter_by(
+            answer_sheet_id=answer_sheet_id,
+            evaluator_role=evaluator_role
+        ).all()
         
         total_awarded = sum(mark.marks_awarded for mark in marks)
         total_max = sum(mark.max_marks for mark in marks)
@@ -273,21 +287,35 @@ def save_report():
 
         answer_sheet = AnswerSheet.query.get_or_404(answer_sheet_id)
 
-        # Compute total marks from Mark table
-        marks = Mark.query.filter_by(answer_sheet_id=answer_sheet_id).all()
-        total_awarded = sum(m.marks_awarded for m in marks) if marks else None
+        # Compute total marks from Mark table for the given role
+        evaluator_role = data.get('evaluatorRole', 'teacher')
+        marks = Mark.query.filter_by(
+            answer_sheet_id=answer_sheet_id,
+            evaluator_role=evaluator_role
+        ).all()
+        total_awarded = sum(m.marks_awarded for m in marks) if marks else 0
 
         answer_sheet.remarks = remarks
-        answer_sheet.status = 'FIRST_DONE'  # Mark as first evaluation done
-
-        # Write teacher_marks so TeacherDashboard can display it
-        if total_awarded is not None:
+        
+        if evaluator_role == 'teacher':
             answer_sheet.teacher_marks = total_awarded
-
-        # If external_marks already exist, compute final
-        if answer_sheet.external_marks is not None and total_awarded is not None:
-            answer_sheet.final_marks = (total_awarded + answer_sheet.external_marks) / 2
-            answer_sheet.status = 'SECOND_DONE'
+            # Transition to FIRST_DONE if it was UPLOADED
+            if answer_sheet.status == 'UPLOADED':
+                answer_sheet.status = 'FIRST_DONE'
+        else:
+            answer_sheet.external_marks = total_awarded
+            # Transition to SECOND_DONE if first was done
+            if answer_sheet.status == 'FIRST_DONE' or answer_sheet.status == 'evaluated':
+                answer_sheet.status = 'SECOND_DONE'
+            elif answer_sheet.status == 'UPLOADED':
+                # External evaluated even before teacher? Keep as UPLOADED or FIRST_DONE?
+                # Usually teacher evaluates first. 
+                answer_sheet.status = 'FIRST_DONE' # Treat as first evaluation done
+        
+        # Compute final if both exist
+        if answer_sheet.teacher_marks is not None and answer_sheet.external_marks is not None:
+            answer_sheet.final_marks = (answer_sheet.teacher_marks + answer_sheet.external_marks) / 2
+            answer_sheet.status = 'evaluated' # Marks as fully evaluated
 
         db.session.commit()
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, BookOpen, ChevronLeft, ChevronRight, Save, TrendingUp, CheckCircle, Plus, Loader, Search, AlertCircle } from 'lucide-react';
 import { saveMarks, getMarks, getTotalMarks, saveReport, getQuestionContents, getRubricContents, scanAllPages } from '../services/api';
 
-const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onViewQuestionPaper, onViewRubric, onGradingProgress }) => {
+const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onViewQuestionPaper, onViewRubric, onGradingProgress, evaluatorRole = 'teacher' }) => {
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [marksAwarded, setMarksAwarded] = useState('');
     const [maxMarks, setMaxMarks] = useState('');
@@ -81,7 +81,7 @@ const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onV
     useEffect(() => {
         loadMarks();
         loadTotal();
-    }, [answersheetId]);
+    }, [answersheetId, evaluatorRole]);
 
     // Update marks input when question changes
     useEffect(() => {
@@ -160,7 +160,7 @@ const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onV
 
     const loadMarks = async () => {
         try {
-            const data = await getMarks(answersheetId);
+            const data = await getMarks(answersheetId, evaluatorRole);
             setAllMarks(data.marks || []);
         } catch (error) {
             console.error('Failed to load marks:', error);
@@ -169,7 +169,7 @@ const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onV
 
     const loadTotal = async () => {
         try {
-            const data = await getTotalMarks(answersheetId);
+            const data = await getTotalMarks(answersheetId, evaluatorRole);
             setTotalScore(data);
         } catch (error) {
             console.error('Failed to load total:', error);
@@ -193,7 +193,8 @@ const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onV
                 activeQuestionPaper?.id,
                 qNumInt,
                 parseFloat(marksAwarded),
-                parseFloat(maxMarks)
+                parseFloat(maxMarks),
+                evaluatorRole
             );
 
             await loadMarks();
@@ -235,7 +236,7 @@ const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onV
     const handleFinalize = async () => {
         setSubmittingReport(true);
         try {
-            await saveReport(answersheetId, remarks);
+            await saveReport(answersheetId, remarks, evaluatorRole);
             alert('Evaluation Report Saved Successfully!');
             setEvaluationComplete(true);
         } catch (error) {
@@ -321,7 +322,12 @@ const GradingPanel = ({ answersheetId, answerSheet, questionPapers, rubrics, onV
             {/* Header */}
             <div className="p-4 border-b border-white border-opacity-10 space-y-3">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-semibold">Grading Panel</h3>
+                    <h3 className="font-semibold flex items-center gap-2">
+                        Grading Panel
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${evaluatorRole === 'teacher' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                            {evaluatorRole}
+                        </span>
+                    </h3>
                     <button
                         onClick={() => setEvaluationComplete(true)}
                         className="text-xs btn btn-ghost px-2 py-1 text-accent-300"

@@ -175,10 +175,12 @@ class AnswerSheet(db.Model):
             'subject_id': self.subject_id,
             'remarks': self.remarks,
             'status': self.status,
-            # NEW: dual-evaluation marks
+            # NEW: dual-evaluation marks & evaluator info
             'teacher_marks': self.teacher_marks,
             'external_marks': self.external_marks,
             'final_marks': self.final_marks,
+            'first_evaluator_id': self.subject.first_evaluator_id if self.subject else None,
+            'second_evaluator_id': self.subject.second_evaluator_id if self.subject else None,
         }
 
 
@@ -214,11 +216,12 @@ class Mark(db.Model):
     question_number = db.Column(db.Integer, nullable=False)
     marks_awarded = db.Column(db.Float, nullable=False)
     max_marks = db.Column(db.Float, nullable=False)
+    evaluator_role = db.Column(db.String(50), nullable=False, default='teacher')  # 'teacher' or 'external'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Unique constraint to prevent duplicate marks for same question
+    # Unique constraint to prevent duplicate marks for same question by same evaluator
     __table_args__ = (
-        db.UniqueConstraint('answer_sheet_id', 'question_number', name='unique_answer_question'),
+        db.UniqueConstraint('answer_sheet_id', 'question_number', 'evaluator_role', name='unique_answer_question_evaluator'),
     )
     
     def to_dict(self):

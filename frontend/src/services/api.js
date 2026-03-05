@@ -146,24 +146,25 @@ export const extractDiagram = async (answersheetId, page, coordinates) => {
     return response.data;
 };
 
-export const saveMarks = async (answersheetId, questionPaperId, questionNumber, marksAwarded, maxMarks) => {
+export const saveMarks = async (answersheetId, questionPaperId, questionNumber, marksAwarded, maxMarks, evaluatorRole = 'teacher') => {
     const response = await api.post('evaluate/marks', {
         answersheetId,
         questionPaperId,
         questionNumber,
         marksAwarded,
-        maxMarks
+        maxMarks,
+        evaluatorRole
     });
     return response.data;
 };
 
-export const getMarks = async (answersheetId) => {
-    const response = await api.get(`evaluate/marks/${answersheetId}`);
+export const getMarks = async (answersheetId, role = 'teacher') => {
+    const response = await api.get(`evaluate/marks/${answersheetId}?role=${role}`);
     return response.data;
 };
 
-export const getTotalMarks = async (answersheetId) => {
-    const response = await api.get(`evaluate/marks/${answersheetId}/total`);
+export const getTotalMarks = async (answersheetId, role = 'teacher') => {
+    const response = await api.get(`evaluate/marks/${answersheetId}/total?role=${role}`);
     return response.data;
 };
 
@@ -172,10 +173,11 @@ export const getPdfInfo = async (answersheetId) => {
     return response.data;
 };
 
-export const saveReport = async (answersheetId, remarks) => {
+export const saveReport = async (answersheetId, remarks, evaluatorRole = 'teacher') => {
     const response = await api.post('evaluate/save-report', {
         answersheetId,
-        remarks
+        remarks,
+        evaluatorRole
     });
     return response.data;
 };

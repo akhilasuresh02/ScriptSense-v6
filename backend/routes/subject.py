@@ -92,7 +92,7 @@ def get_subject(subject_id):
             'stats': {
                 'total_students': len(answer_sheets),
                 'evaluated': len([a for a in answer_sheets if a.status == 'evaluated']),
-                'pending': len([a for a in answer_sheets if a.status == 'pending'])
+                'pending': len([a for a in answer_sheets if a.status != 'evaluated'])
             }
         }), 200
         
@@ -271,7 +271,9 @@ def export_subject_marks(subject_id):
         center_align = Alignment(horizontal="center")
         
         # Set Headers
-        headers = ['Roll Number', 'Student Name'] + [f"Q{q}" if not str(q).startswith('Q') else q for q in sorted_questions] + ['Total', 'Percentage', 'Status']
+        headers = ['Roll Number', 'Student Name'] + \
+                  [f"Q{q}" if not str(q).startswith('Q') else q for q in sorted_questions] + \
+                  ['Teacher Marks', 'External Marks', 'Final Average', 'Status']
         
         for col_num, header_title in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col_num)
@@ -299,12 +301,10 @@ def export_subject_marks(subject_id):
                     row_total += val
             
             # For percentage, we need max marks. If not available per student, we use evaluated percentage if stored.
-            # Get total marks if available
-            eval_total = get_total_marks_logic(sheet.id)
-            
-            ws.cell(row=row_num, column=len(headers) - 2, value=row_total)
-            ws.cell(row=row_num, column=len(headers) - 1, value=f"{eval_total.get('percentage', 0):.2f}%" if eval_total else "-")
-            ws.cell(row=row_num, column=len(headers), value=sheet.status.capitalize())
+            ws.cell(row=row_num, column=len(headers) - 3, value=sheet.teacher_marks if sheet.teacher_marks is not None else '-')
+            ws.cell(row=row_num, column=len(headers) - 2, value=sheet.external_marks if sheet.external_marks is not None else '-')
+            ws.cell(row=row_num, column=len(headers) - 1, value=sheet.final_marks if sheet.final_marks is not None else '-')
+            ws.cell(row=row_num, column=len(headers), value=sheet.status)
             
         # Save to buffer
         output = io.BytesIO()

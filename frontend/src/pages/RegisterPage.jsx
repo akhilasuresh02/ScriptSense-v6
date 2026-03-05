@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, BookOpen } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, BookOpen, Eye, EyeOff } from 'lucide-react';
 import { registerFaculty } from '../services/api';
 
 export default function RegisterPage() {
@@ -10,6 +10,7 @@ export default function RegisterPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -132,13 +133,20 @@ export default function RegisterPage() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                         <input
                                             id="reg-password"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             name="password"
                                             value={form.password}
                                             onChange={handleChange}
                                             placeholder="Min. 6 characters"
-                                            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-12 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
                                     </div>
                                 </div>
 
@@ -148,13 +156,20 @@ export default function RegisterPage() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                         <input
                                             id="reg-confirm-password"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             name="confirmPassword"
                                             value={form.confirmPassword}
                                             onChange={handleChange}
                                             placeholder="Repeat password"
-                                            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-12 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
                                     </div>
                                 </div>
 

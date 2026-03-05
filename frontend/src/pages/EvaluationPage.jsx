@@ -7,10 +7,12 @@ import GradingPanel from '../components/GradingPanel';
 import DocumentModal from '../components/DocumentModal';
 import ZoomModal from '../components/ZoomModal';
 import { getFiles, getPdfInfo, zoomRegion, getSubjectStudents } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const EvaluationPage = () => {
     const { answersheetId } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const [answerSheet, setAnswerSheet] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
@@ -57,7 +59,7 @@ const EvaluationPage = () => {
     useEffect(() => {
         loadAnswerSheet();
         loadQuestionPapersAndRubrics();
-    }, [answersheetId]);
+    }, [answersheetId, user?.id]);
 
     const loadAnswerSheet = async () => {
         try {
@@ -246,6 +248,9 @@ const EvaluationPage = () => {
                         onViewQuestionPaper={() => setShowQuestionPaper(true)}
                         onViewRubric={() => setShowRubric(true)}
                         onGradingProgress={setGradingProgress}
+                        evaluatorRole={
+                            user?.id === answerSheet?.second_evaluator_id ? 'external' : 'teacher'
+                        }
                     />
                 </div>
             </div>

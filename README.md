@@ -67,8 +67,8 @@ ScriptSense is a comprehensive full-stack application designed to automate and a
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/akhilasuresh02/scriptsense-v5.git
-cd scriptsense-v5
+git clone https://github.com/akhilasuresh02/scriptsense-v6.git
+cd scriptsense-v6
 ```
 
 ### 2. Backend Setup
